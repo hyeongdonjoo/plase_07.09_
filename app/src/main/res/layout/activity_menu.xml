@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/neutral_background"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/rootLayout"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- 🔙 뒤로가기 버튼 -->
+        <Button
+            android:id="@+id/buttonBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← 뒤로가기"
+            android:textColor="@color/button_primary"
+            android:background="@android:color/transparent"
+            android:textSize="20sp"
+            android:padding="10dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- 타이틀 -->
+        <TextView
+            android:id="@+id/textViewMenuTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="가게 메뉴"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="12dp" />
+
+        <!-- 메뉴 리스트가 들어갈 컨테이너 -->
+        <LinearLayout
+            android:id="@+id/menuContainer"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- 🛒 장바구니 보기 버튼 -->
+        <Button
+            android:id="@+id/buttonGoCart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="장바구니 보기"
+            android:layout_marginTop="24dp"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:background="@color/button_primary"
+            android:padding="14dp" />
+    </LinearLayout>
+</ScrollView>

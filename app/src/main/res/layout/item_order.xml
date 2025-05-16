@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#EEEEEE"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/textShopName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="가게 이름"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/textTotalPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="총액: 0원"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/textOrderItems"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="메뉴: 김밥 x2, 떡볶이 x1"
+        android:textSize="14sp"
+        android:textColor="#333333"
+        android:paddingTop="4dp"/>
+</LinearLayout>

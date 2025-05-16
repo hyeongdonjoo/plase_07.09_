@@ -1,0 +1,30 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/layoutOrders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+    <Button
+        android:id="@+id/buttonGoHome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="홈으로 가기"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="#6200EE"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:padding="12dp" />
+</LinearLayout>

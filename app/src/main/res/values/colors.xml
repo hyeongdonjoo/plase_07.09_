@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ✅ 시스템 색상 -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- ✅ 기본 머티리얼 색상 (예비용) -->
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+
+    <!-- ✅ 브랜드별 테마 컬러 -->
+    <color name="starbucks_primary">#00704A</color>       <!-- 진한 녹색 -->
+    <color name="burgerking_primary">#D62300</color>      <!-- 강렬한 빨강 -->
+    <color name="gimbap_primary">#F5A623</color>          <!-- 따뜻한 주황 -->
+
+    <!-- ✅ 앱 공통 고급 톤 컬러 -->
+    <color name="neutral_background">#F5F5F5</color>       <!-- 연회색 배경 -->
+    <color name="text_primary">#1C1C1C</color>            <!-- 주요 텍스트 -->
+    <color name="text_secondary">#555555</color>          <!-- 보조 텍스트 -->
+    <color name="button_primary">#4A6FA5</color>          <!-- 고급 파랑 버튼 -->
+    <color name="button_secondary">#C9A36B</color>        <!-- 금빛 포인트 -->
+    <color name="input_border">#DDDDDD</color>            <!-- 입력창 테두리 -->
+    <color name="button_border">#BBBBBB</color>           <!-- 라이트 버튼 테두리 -->
+</resources>

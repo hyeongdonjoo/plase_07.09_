@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- 🔙 커스텀 뒤로가기 버튼 -->
+    <Button
+        android:id="@+id/buttonBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="← 뒤로가기"
+        android:background="@android:color/transparent"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:layout_marginBottom="10dp" />
+
+    <!-- 장바구니에 담긴 항목들 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/layoutCartItems"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </ScrollView>
+
+    <!-- 총 가격 표시 -->
+    <TextView
+        android:id="@+id/textTotalPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="총합: 0원"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp" />
+
+    <!-- 주문하기 버튼 -->
+    <Button
+        android:id="@+id/buttonOrder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="주문하기"
+        android:backgroundTint="#6200EE"
+        android:textColor="@android:color/white"
+        android:textSize="25sp"
+        android:padding="17dp"/>
+</LinearLayout>
