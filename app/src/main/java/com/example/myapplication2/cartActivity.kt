@@ -2,6 +2,7 @@ package com.example.myapplication2
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -15,6 +16,7 @@ class CartActivity : AppCompatActivity() {
 
     private lateinit var layoutCartItems: LinearLayout
     private lateinit var textTotalPrice: TextView
+    private lateinit var textEmptyCart: TextView
     private lateinit var buttonOrder: Button
     private lateinit var buttonBack: Button
     private lateinit var shopName: String
@@ -26,6 +28,7 @@ class CartActivity : AppCompatActivity() {
 
         layoutCartItems = findViewById(R.id.layoutCartItems)
         textTotalPrice = findViewById(R.id.textTotalPrice)
+        textEmptyCart = findViewById(R.id.textEmptyCart)
         buttonOrder = findViewById(R.id.buttonOrder)
         buttonBack = findViewById(R.id.buttonBack)
 
@@ -45,7 +48,18 @@ class CartActivity : AppCompatActivity() {
     private fun displayCartItems() {
         layoutCartItems.removeAllViews()
 
-        for (item in CartManager.cartItems) {
+        val cartItems = CartManager.cartItems
+        if (cartItems.isEmpty()) {
+            textEmptyCart.visibility = View.VISIBLE
+            buttonOrder.visibility = View.GONE
+            textTotalPrice.text = ""
+            return
+        }
+
+        textEmptyCart.visibility = View.GONE
+        buttonOrder.visibility = View.VISIBLE
+
+        for (item in cartItems) {
             val itemView = layoutInflater.inflate(R.layout.cart_item, layoutCartItems, false)
             itemView.findViewById<TextView>(R.id.textItemName).text = "${item.name} x ${item.quantity}"
             itemView.findViewById<TextView>(R.id.textItemPrice).text = "${item.price * item.quantity}원"

@@ -25,7 +25,6 @@
             android:textSize="16sp"
             android:padding="4dp" />
 
-        <!-- 중간 여백 뷰 (오류 없는 고정 높이 사용) -->
         <View
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -55,12 +54,44 @@
         android:gravity="center_horizontal"
         android:layout_marginBottom="8dp"/>
 
-    <!-- 구분선 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#DDDDDD"
         android:layout_marginBottom="8dp"/>
+
+    <!-- ProgressBar (가게 찾는 중...) -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="visible"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- 주변 가게 없음 안내 텍스트 -->
+    <TextView
+        android:id="@+id/textViewNoShops"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📭 주변에 감지된 가게가 없습니다"
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 🔄 새로고침 버튼 -->
+    <Button
+        android:id="@+id/buttonRefresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🔄 새로고침"
+        android:layout_gravity="center"
+        android:layout_marginBottom="12dp"
+        android:visibility="visible"/>
 
     <!-- 가게 리스트 RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
@@ -70,5 +101,6 @@
         android:layout_weight="1"
         android:clipToPadding="false"
         android:scrollbars="vertical"
-        android:paddingBottom="8dp"/>
+        android:paddingBottom="8dp"
+        android:visibility="gone"/>
 </LinearLayout>

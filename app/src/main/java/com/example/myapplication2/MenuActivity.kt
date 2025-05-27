@@ -4,11 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
@@ -19,6 +15,7 @@ class MenuActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private lateinit var menuContainer: LinearLayout
     private lateinit var shopName: String
+    private lateinit var refreshButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,11 +31,17 @@ class MenuActivity : AppCompatActivity() {
         shopName = intent.getStringExtra("shopName") ?: "가게 없음"
         findViewById<TextView>(R.id.textViewMenuTitle).text = "$shopName 의 메뉴입니다"
 
-        // 장바구니 보기 버튼
+        // 장바구니 보기
         findViewById<Button>(R.id.buttonGoCart).setOnClickListener {
             val intent = Intent(this, CartActivity::class.java)
             intent.putExtra("shopName", shopName)
             startActivity(intent)
+        }
+
+        refreshButton = findViewById(R.id.buttonRefreshMenu)
+        refreshButton.setOnClickListener {
+            menuContainer.removeAllViews()
+            loadMenusFromFirestore()
         }
 
         menuContainer = findViewById(R.id.menuContainer)
@@ -101,7 +104,6 @@ class MenuActivity : AppCompatActivity() {
         menuContainer.addView(view)
     }
 
-    // ✅ 글자색 적용된 Toast 메서드
     private fun showToast(message: String) {
         val toast = Toast.makeText(this, message, Toast.LENGTH_SHORT)
         toast.view?.findViewById<TextView>(android.R.id.message)?.setTextColor(Color.BLACK)

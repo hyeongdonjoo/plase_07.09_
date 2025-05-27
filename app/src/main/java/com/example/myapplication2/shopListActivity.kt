@@ -1,10 +1,19 @@
 package com.example.myapplication2
 
+import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
+import android.view.View
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -13,62 +22,192 @@ import com.google.firebase.firestore.FirebaseFirestore
 class ShopListActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
+    private lateinit var progressBar: ProgressBar
+    private lateinit var noShopsTextView: TextView
+    private lateinit var refreshButton: Button
     private lateinit var adapter: ShopAdapter
     private val shopList = mutableListOf<Shop>()
 
+    private val LOCATION_PERMISSION_REQUEST_CODE = 1002
+    private lateinit var firestore: FirebaseFirestore
+    private val detectedSsids = mutableSetOf<String>()
+
+    private lateinit var wifiManager: WifiManager
+    private val wifiScanReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val success = intent?.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false) ?: false
+            if (success) {
+                handleScanResults()
+            } else {
+                Log.e("WiFiScan", "스캔 실패 또는 결과 없음")
+                showNoWifiDetected()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportActionBar?.hide() // ✅ 상단바 제거
+        supportActionBar?.hide()
         setContentView(R.layout.activity_shop_list)
 
-        // ✅ 로그아웃 버튼 동작
         findViewById<Button>(R.id.buttonLogout).setOnClickListener {
-            FirebaseAuth.getInstance().signOut() // Firebase 세션 종료
+            FirebaseAuth.getInstance().signOut()
             val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
         }
 
-        // ✅ 뒤로가기 버튼 동작
         findViewById<Button>(R.id.buttonBack).setOnClickListener {
             finish()
         }
 
         recyclerView = findViewById(R.id.recyclerViewShops)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        progressBar = findViewById(R.id.progressBar)
+        noShopsTextView = findViewById(R.id.textViewNoShops)
+        refreshButton = findViewById(R.id.buttonRefresh)
 
+        recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ShopAdapter(shopList) { selectedShop ->
             val intent = Intent(this, MenuActivity::class.java)
             intent.putExtra("shopName", selectedShop.name)
             startActivity(intent)
         }
-
         recyclerView.adapter = adapter
 
-        loadShopsFromFirestore()
+        firestore = FirebaseFirestore.getInstance()
+        wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
+
+        refreshButton.setOnClickListener {
+            refreshWifiScan()
+        }
+
+        refreshWifiScan()
     }
 
-    private fun loadShopsFromFirestore() {
-        val db = FirebaseFirestore.getInstance()
-        Log.d("ShopListActivity", "📢 Firestore 불러오기 시작")
+    private fun refreshWifiScan() {
+        progressBar.visibility = View.VISIBLE
+        recyclerView.visibility = View.GONE
+        noShopsTextView.visibility = View.GONE
+        checkLocationPermission()
+    }
 
-        db.collection("shops")
+    private fun checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+        } else {
+            startWifiScan()
+        }
+    }
+
+    private fun startWifiScan() {
+        val success = try {
+            wifiManager.startScan()
+        } catch (e: SecurityException) {
+            Log.e("WiFiScan", "startScan() 권한 오류", e)
+            false
+        }
+
+        Log.d("WiFiScan", "startScan() 호출됨 → 성공 여부: $success")
+
+        if (!success) {
+            showNoWifiDetected()
+        }
+    }
+
+    private fun handleScanResults() {
+        detectedSsids.clear()
+        val scanResults = wifiManager.scanResults
+
+        for (result in scanResults) {
+            val ssid = result.SSID
+            val rssi = result.level
+            Log.d("WiFiScan", "📡 SSID: $ssid, RSSI: $rssi dBm")
+
+            if (rssi > -60 && ssid.isNotBlank()) {
+                detectedSsids.add(ssid)
+            }
+        }
+
+        if (detectedSsids.isNotEmpty()) {
+            loadShopsMatchingNearbyWifi()
+        } else {
+            showNoWifiDetected()
+        }
+    }
+
+    private fun loadShopsMatchingNearbyWifi() {
+        firestore.collection("shops")
             .get()
             .addOnSuccessListener { result ->
-                Log.d("ShopListActivity", "✅ Firestore 불러오기 성공")
                 shopList.clear()
+
                 for (document in result) {
-                    val name = document.getString("name") ?: document.id
+                    val name = document.getString("name") ?: continue
                     val address = document.getString("address") ?: "주소 없음"
-                    Log.d("ShopListActivity", "불러온 가게: $name / $address")
-                    shopList.add(Shop(name, address))
+                    val ssid = document.getString("ssid") ?: continue
+
+                    if (detectedSsids.contains(ssid)) {
+                        shopList.add(Shop(name, address))
+                        Log.d("ShopListActivity", "📍감지된 가게: $name (SSID: $ssid)")
+                    }
                 }
-                Log.d("ShopListActivity", "총 ${shopList.size}개 가게 추가됨")
+
                 adapter.notifyDataSetChanged()
+                progressBar.visibility = View.GONE
+
+                if (shopList.isEmpty()) {
+                    recyclerView.visibility = View.GONE
+                    noShopsTextView.visibility = View.VISIBLE
+                } else {
+                    recyclerView.visibility = View.VISIBLE
+                    noShopsTextView.visibility = View.GONE
+                }
             }
             .addOnFailureListener { e ->
-                Log.e("ShopListActivity", "🔥 Firestore 불러오기 실패", e)
+                Log.e("ShopListActivity", "Firestore 불러오기 실패", e)
+                progressBar.visibility = View.GONE
+                noShopsTextView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
             }
+    }
+
+    private fun showNoWifiDetected() {
+        Toast.makeText(this, "📡 근처에 등록된 Wi-Fi가 없습니다.", Toast.LENGTH_SHORT).show()
+        progressBar.visibility = View.GONE
+        recyclerView.visibility = View.GONE
+        noShopsTextView.visibility = View.VISIBLE
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startWifiScan()
+        } else {
+            Toast.makeText(this, "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+            progressBar.visibility = View.GONE
+            noShopsTextView.visibility = View.VISIBLE
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerReceiver(wifiScanReceiver, IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION))
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(wifiScanReceiver)
     }
 }
