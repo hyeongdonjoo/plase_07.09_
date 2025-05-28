@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
 import android.widget.*
@@ -25,6 +26,7 @@ class ShopListActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var noShopsTextView: TextView
     private lateinit var refreshButton: Button
+    private lateinit var countdownTextView: TextView
     private lateinit var adapter: ShopAdapter
     private val shopList = mutableListOf<Shop>()
 
@@ -33,6 +35,8 @@ class ShopListActivity : AppCompatActivity() {
     private val detectedSsids = mutableSetOf<String>()
 
     private lateinit var wifiManager: WifiManager
+    private var lastScanTime: Long = 0
+
     private val wifiScanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val success = intent?.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false) ?: false
@@ -66,6 +70,7 @@ class ShopListActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progressBar)
         noShopsTextView = findViewById(R.id.textViewNoShops)
         refreshButton = findViewById(R.id.buttonRefresh)
+        countdownTextView = findViewById(R.id.textViewCountdown)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ShopAdapter(shopList) { selectedShop ->
@@ -80,9 +85,28 @@ class ShopListActivity : AppCompatActivity() {
 
         refreshButton.setOnClickListener {
             refreshWifiScan()
+            disableRefreshButtonWithCountdown()
         }
 
         refreshWifiScan()
+    }
+
+    private fun disableRefreshButtonWithCountdown() {
+        refreshButton.isEnabled = false
+        countdownTextView.visibility = View.VISIBLE
+
+        val timer = object : CountDownTimer(10000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val secondsRemaining = millisUntilFinished / 1000
+                countdownTextView.text = "${secondsRemaining}초 후 재시도 가능"
+            }
+
+            override fun onFinish() {
+                refreshButton.isEnabled = true
+                countdownTextView.visibility = View.GONE
+            }
+        }
+        timer.start()
     }
 
     private fun refreshWifiScan() {
@@ -106,6 +130,23 @@ class ShopListActivity : AppCompatActivity() {
     }
 
     private fun startWifiScan() {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastScanTime < 10000) {
+            Toast.makeText(this, "⏱ 잠시 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        lastScanTime = currentTime
+
+        if (!wifiManager.isWifiEnabled) {
+            Toast.makeText(this, "📶 Wi-Fi가 꺼져 있습니다. 켜주세요.", Toast.LENGTH_SHORT).show()
+            showNoWifiDetected()
+            return
+        }
+
+        progressBar.visibility = View.VISIBLE
+        recyclerView.visibility = View.GONE
+        noShopsTextView.visibility = View.GONE
+
         val success = try {
             wifiManager.startScan()
         } catch (e: SecurityException) {

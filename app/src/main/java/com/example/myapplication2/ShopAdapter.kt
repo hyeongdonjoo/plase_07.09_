@@ -17,8 +17,11 @@ class ShopAdapter(
 
         init {
             itemView.setOnClickListener {
-                val shop = shopList[adapterPosition]
-                onItemClick(shop)
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val shop = shopList[position]
+                    onItemClick(shop)
+                }
             }
         }
     }
