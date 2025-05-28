@@ -28,27 +28,22 @@ class MainActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
+        // 🔥 핵심 추가: 이미 로그인된 사용자 체크
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            val intent = Intent(this, ShopListActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, ShopListActivity::class.java))
             finish()
-            return
+            return // 이후 코드 실행 방지
         }
 
         val loginButton: Button = findViewById(R.id.button)
         val registerButton: Button = findViewById(R.id.button2)
 
-        loginButton.setOnClickListener {
-            loginUser()
-        }
-
+        loginButton.setOnClickListener { loginUser() }
         registerButton.setOnClickListener {
-            val intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
 
-        // ✅ 위치 권한 체크 및 요청
         checkLocationPermission()
     }
 
@@ -65,9 +60,8 @@ class MainActivity : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     showCustomToast("로그인 성공")
-                    val intent = Intent(this, ShopListActivity::class.java)
-                    startActivity(intent)
-                    finish()
+                    startActivity(Intent(this, ShopListActivity::class.java))
+                    finish() // 로그인 성공 시 현재 액티비티 종료
                 } else {
                     showCustomToast("로그인 실패: ${task.exception?.message}")
                 }
@@ -80,22 +74,19 @@ class MainActivity : AppCompatActivity() {
         toast.show()
     }
 
-    // ✅ 위치 권한 요청
     private fun checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED) {
-
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         } else {
-            scanNearbyWifi()
+            checkWifiAndScan()
         }
     }
 
-    // ✅ 권한 응답 처리
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -104,36 +95,49 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                scanNearbyWifi()
+                checkWifiAndScan()
             } else {
                 showCustomToast("위치 권한이 필요합니다.")
             }
         }
     }
 
-    // ✅ RSSI로 Wi-Fi 감지
-    private fun scanNearbyWifi() {
+    private fun checkWifiAndScan() {
         val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
-        val scanResults = wifiManager.scanResults
+        if (!wifiManager.isWifiEnabled) {
+            showCustomToast("Wi-Fi를 켜주세요")
+            return
+        }
+        scanNearbyWifi()
+    }
 
-        for (result in scanResults) {
-            val ssid = result.SSID
-            val rssi = result.level
-
-            Log.d("WiFiScan", "📶 SSID: $ssid, RSSI: $rssi dBm")
-
-            if (ssid == "김밥천국_WiFi" && rssi > -60) {
-                showCustomToast("김밥천국 접근 감지!")
-                goToShopMenu("김밥천국")
-                break
+    private fun scanNearbyWifi() {
+        try {
+            val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
+            val success = wifiManager.startScan()
+            if (!success) {
+                Log.e("WiFiScan", "스캔 시작 실패")
+                return
             }
+            val scanResults = wifiManager.scanResults
+
+            for (result in scanResults) {
+                Log.d("WiFiScan", "📶 SSID: ${result.SSID}, RSSI: ${result.level} dBm")
+                if (result.SSID == "김밥천국_WiFi" && result.level > -60) {
+                    goToShopMenu("김밥천국")
+                    return
+                }
+            }
+        } catch (e: SecurityException) {
+            Log.e("WiFiScan", "권한 오류", e)
+            showCustomToast("권한 문제 발생")
         }
     }
 
-    // ✅ 감지된 가게 메뉴로 이동
     private fun goToShopMenu(shopName: String) {
-        val intent = Intent(this, ShopListActivity::class.java)
-        intent.putExtra("shopName", shopName)
+        val intent = Intent(this, ShopListActivity::class.java).apply {
+            putExtra("shopName", shopName)
+        }
         startActivity(intent)
     }
 }

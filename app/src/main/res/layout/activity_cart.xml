@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-    <!-- 🔙 커스텀 뒤로가기 버튼 -->
+    <!-- 🔙 뒤로가기 -->
     <Button
         android:id="@+id/buttonBack"
         android:layout_width="wrap_content"
@@ -19,7 +19,7 @@
         android:padding="10dp"
         android:layout_marginBottom="10dp" />
 
-    <!-- 장바구니에 담긴 항목들 -->
+    <!-- 항목 리스트 -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -29,10 +29,13 @@
             android:id="@+id/layoutCartItems"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:divider="?android:attr/dividerVertical"
+            android:showDividers="middle"
+            android:dividerPadding="8dp" />
     </ScrollView>
 
-    <!-- 장바구니 비었을 때 안내 메시지 -->
+    <!-- 비었을 때 안내 -->
     <TextView
         android:id="@+id/textEmptyCart"
         android:layout_width="match_parent"
@@ -41,29 +44,29 @@
         android:textSize="18sp"
         android:textColor="#888888"
         android:gravity="center"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginVertical="12dp"
         android:visibility="gone" />
 
-    <!-- 총 가격 표시 -->
+    <!-- 총 가격 -->
     <TextView
         android:id="@+id/textTotalPrice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="총합: 0원"
+        android:textColor="#000000"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp" />
+        android:gravity="end"
+        android:paddingVertical="10dp" />
 
-    <!-- 주문하기 버튼 -->
+    <!-- 주문 버튼 -->
     <Button
         android:id="@+id/buttonOrder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="주문하기"
+        android:text="결제하기"
         android:backgroundTint="#6200EE"
-        android:textColor="@android:color/white"
-        android:textSize="25sp"
-        android:padding="17dp"/>
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:padding="16dp" />
 </LinearLayout>

@@ -1,28 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
-    android:padding="14dp"
+    android:orientation="vertical"
+    android:padding="12dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#EEEEEE"
-    android:layout_marginBottom="8dp">
+    android:background="#FFFFFF"
+    android:layout_marginBottom="10dp"
+    android:elevation="2dp">
 
-    <!-- 메뉴 이름 + 수량 -->
-    <TextView
-        android:id="@+id/textItemName"
-        android:layout_width="0dp"
-        android:layout_weight="1"
+    <!-- 메뉴명 + 삭제 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="김밥 x 2"
-        android:textSize="20sp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <!-- 가격 -->
-    <TextView
-        android:id="@+id/textItemPrice"
-        android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/textItemName"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="김밥"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/buttonRemove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="삭제"
+            android:textColor="#FF0000"
+            android:textSize="16sp"
+            android:background="@android:color/transparent" />
+    </LinearLayout>
+
+    <!-- 수량 조절 + 가격 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="6000원"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
+
+        <!-- 수량 감소 -->
+        <Button
+            android:id="@+id/buttonDecrease"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="−"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:backgroundTint="#DDDDDD" />
+
+        <!-- 수량 -->
+        <TextView
+            android:id="@+id/textQuantity"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="2"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:layout_marginHorizontal="8dp" />
+
+        <!-- 수량 증가 -->
+        <Button
+            android:id="@+id/buttonIncrease"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:backgroundTint="#DDDDDD" />
+
+        <!-- 총 가격 -->
+        <TextView
+            android:id="@+id/textItemPrice"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="6000원"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:gravity="end" />
+    </LinearLayout>
 </LinearLayout>

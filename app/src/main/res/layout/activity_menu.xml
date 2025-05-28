@@ -35,15 +35,6 @@
             android:textColor="@color/text_primary"
             android:layout_marginBottom="8dp" />
 
-        <!-- 🔄 메뉴 새로고침 버튼 -->
-        <Button
-            android:id="@+id/buttonRefreshMenu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔄 메뉴 새로고침"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="12dp" />
-
         <!-- 메뉴 리스트가 들어갈 컨테이너 -->
         <LinearLayout
             android:id="@+id/menuContainer"

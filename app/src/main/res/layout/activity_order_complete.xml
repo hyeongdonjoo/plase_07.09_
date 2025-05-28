@@ -2,31 +2,93 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:gravity="center"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
-    android:background="#FFFFFF">
+    android:padding="20dp"
+    android:background="#FFFFFF"
+    android:gravity="center_vertical">
 
+    <!-- 주문이 완료되었습니다 (가게명) - 배경색/글자색 강조 -->
     <TextView
-        android:id="@+id/textOrderComplete"
-        android:layout_width="wrap_content"
+        android:id="@+id/textShopNameComplete"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="주문이 완료되었습니다!"
-        android:textSize="24sp"
+        android:text=""
+        android:textSize="32sp"
         android:textStyle="bold"
-        android:paddingBottom="24dp"/>
+        android:textColor="#FFFFFF"
+        android:gravity="center"
+        android:background="@drawable/rounded_purple_bg"
+        android:padding="20dp"
+        android:layout_marginBottom="100dp" />
 
+    <!-- 주문한 메뉴 영역 - 배경색 적용 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/rounded_menu_bg"
+        android:padding="20dp"
+        android:layout_marginBottom="100dp">
+
+        <TextView
+            android:id="@+id/textViewMenuTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="M    E    N    U"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#4B2997"
+            android:gravity="center"
+            android:layout_marginBottom="30dp" />
+
+        <TextView
+            android:id="@+id/textViewMenuList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#4B2997"
+            android:textSize="15sp"
+            android:gravity="center"
+            android:layout_marginBottom="30dp" />
+
+        <TextView
+            android:id="@+id/textViewTotalPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text=""
+            android:textColor="#4B2997"
+            android:textSize="26sp"
+            android:background="@drawable/rounded_total_bg"
+            android:padding="14dp"
+            android:layout_marginBottom="0dp" />
+
+
+    </LinearLayout>
+
+    <!-- 홈으로 가기 버튼 -->
     <Button
         android:id="@+id/buttonGoHome"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="홈으로 가기" />
+        android:text="🏠 홈으로 가기"
+        android:backgroundTint="#6200EE"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:padding="14dp"
+        android:layout_marginBottom="10dp" />
 
+    <!-- 주문 내역 보기 버튼 -->
     <Button
         android:id="@+id/buttonMyOrders"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="주문 내역 보기"
-        android:layout_marginTop="16dp"/>
+        android:backgroundTint="#6200EE"
+        android:padding="14dp"
+        android:text="📦 주문 내역 보기"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:layout_marginBottom="30dp" />
+
 </LinearLayout>

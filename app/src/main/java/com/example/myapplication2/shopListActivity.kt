@@ -1,6 +1,7 @@
 package com.example.myapplication2
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,7 +12,10 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,15 +26,16 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class ShopListActivity : AppCompatActivity() {
 
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var recyclerViewShops: RecyclerView
     private lateinit var progressBar: ProgressBar
-    private lateinit var noShopsTextView: TextView
-    private lateinit var refreshButton: Button
-    private lateinit var countdownTextView: TextView
+    private lateinit var textViewNoShops: TextView
+    private lateinit var buttonBack: Button
+    private lateinit var buttonRefresh: Button
+    private lateinit var textViewCountdown: TextView
     private lateinit var adapter: ShopAdapter
     private val shopList = mutableListOf<Shop>()
 
-    private val LOCATION_PERMISSION_REQUEST_CODE = 1002
+    private val locationPermissionRequestCode = 1002
     private lateinit var firestore: FirebaseFirestore
     private val detectedSsids = mutableSetOf<String>()
 
@@ -54,7 +59,14 @@ class ShopListActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_shop_list)
 
-        findViewById<Button>(R.id.buttonLogout).setOnClickListener {
+        recyclerViewShops = findViewById(R.id.recyclerViewShops)
+        progressBar = findViewById(R.id.progressBar)
+        textViewNoShops = findViewById(R.id.textViewNoShops)
+        buttonBack = findViewById(R.id.buttonBack)
+        buttonRefresh = findViewById(R.id.buttonRefresh)
+        textViewCountdown = findViewById(R.id.textViewCountdown)
+
+        buttonBack.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -62,48 +74,40 @@ class ShopListActivity : AppCompatActivity() {
             finish()
         }
 
-        findViewById<Button>(R.id.buttonBack).setOnClickListener {
-            finish()
-        }
-
-        recyclerView = findViewById(R.id.recyclerViewShops)
-        progressBar = findViewById(R.id.progressBar)
-        noShopsTextView = findViewById(R.id.textViewNoShops)
-        refreshButton = findViewById(R.id.buttonRefresh)
-        countdownTextView = findViewById(R.id.textViewCountdown)
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerViewShops.layoutManager = LinearLayoutManager(this)
         adapter = ShopAdapter(shopList) { selectedShop ->
+            Log.d("ShopListActivity", "shopName to send: ${selectedShop.name}")
             val intent = Intent(this, MenuActivity::class.java)
             intent.putExtra("shopName", selectedShop.name)
             startActivity(intent)
         }
-        recyclerView.adapter = adapter
+        recyclerViewShops.adapter = adapter
 
         firestore = FirebaseFirestore.getInstance()
         wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
 
-        refreshButton.setOnClickListener {
+        buttonRefresh.setOnClickListener {
             refreshWifiScan()
             disableRefreshButtonWithCountdown()
         }
 
+        // ⭐️ 앱이 처음 열릴 때 자동 새로고침 실행!
         refreshWifiScan()
     }
 
     private fun disableRefreshButtonWithCountdown() {
-        refreshButton.isEnabled = false
-        countdownTextView.visibility = View.VISIBLE
+        buttonRefresh.isEnabled = false
+        textViewCountdown.visibility = View.VISIBLE
 
         val timer = object : CountDownTimer(10000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val secondsRemaining = millisUntilFinished / 1000
-                countdownTextView.text = "${secondsRemaining}초 후 재시도 가능"
+                textViewCountdown.text = getString(R.string.countdown_text, secondsRemaining)
             }
 
             override fun onFinish() {
-                refreshButton.isEnabled = true
-                countdownTextView.visibility = View.GONE
+                buttonRefresh.isEnabled = true
+                textViewCountdown.visibility = View.GONE
             }
         }
         timer.start()
@@ -111,8 +115,8 @@ class ShopListActivity : AppCompatActivity() {
 
     private fun refreshWifiScan() {
         progressBar.visibility = View.VISIBLE
-        recyclerView.visibility = View.GONE
-        noShopsTextView.visibility = View.GONE
+        recyclerViewShops.visibility = View.GONE
+        textViewNoShops.visibility = View.GONE
         checkLocationPermission()
     }
 
@@ -122,17 +126,19 @@ class ShopListActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
+                locationPermissionRequestCode
             )
         } else {
             startWifiScan()
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun startWifiScan() {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastScanTime < 10000) {
             Toast.makeText(this, "⏱ 잠시 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+            progressBar.visibility = View.GONE
             return
         }
         lastScanTime = currentTime
@@ -142,21 +148,18 @@ class ShopListActivity : AppCompatActivity() {
             showNoWifiDetected()
             return
         }
-
         progressBar.visibility = View.VISIBLE
-        recyclerView.visibility = View.GONE
-        noShopsTextView.visibility = View.GONE
+        recyclerViewShops.visibility = View.GONE
+        textViewNoShops.visibility = View.GONE
 
-        val success = try {
-            wifiManager.startScan()
+        try {
+            val success = wifiManager.startScan()
+            Log.d("WiFiScan", "startScan() 호출됨 → 성공 여부: $success")
+            if (!success) {
+                showNoWifiDetected()
+            }
         } catch (e: SecurityException) {
             Log.e("WiFiScan", "startScan() 권한 오류", e)
-            false
-        }
-
-        Log.d("WiFiScan", "startScan() 호출됨 → 성공 여부: $success")
-
-        if (!success) {
             showNoWifiDetected()
         }
     }
@@ -203,26 +206,26 @@ class ShopListActivity : AppCompatActivity() {
                 progressBar.visibility = View.GONE
 
                 if (shopList.isEmpty()) {
-                    recyclerView.visibility = View.GONE
-                    noShopsTextView.visibility = View.VISIBLE
+                    recyclerViewShops.visibility = View.GONE
+                    textViewNoShops.visibility = View.VISIBLE
                 } else {
-                    recyclerView.visibility = View.VISIBLE
-                    noShopsTextView.visibility = View.GONE
+                    recyclerViewShops.visibility = View.VISIBLE
+                    textViewNoShops.visibility = View.GONE
                 }
             }
             .addOnFailureListener { e ->
                 Log.e("ShopListActivity", "Firestore 불러오기 실패", e)
                 progressBar.visibility = View.GONE
-                noShopsTextView.visibility = View.VISIBLE
-                recyclerView.visibility = View.GONE
+                textViewNoShops.visibility = View.VISIBLE
+                recyclerViewShops.visibility = View.GONE
             }
     }
 
     private fun showNoWifiDetected() {
         Toast.makeText(this, "📡 근처에 등록된 Wi-Fi가 없습니다.", Toast.LENGTH_SHORT).show()
         progressBar.visibility = View.GONE
-        recyclerView.visibility = View.GONE
-        noShopsTextView.visibility = View.VISIBLE
+        recyclerViewShops.visibility = View.GONE
+        textViewNoShops.visibility = View.VISIBLE
     }
 
     override fun onRequestPermissionsResult(
@@ -231,14 +234,14 @@ class ShopListActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE &&
+        if (requestCode == locationPermissionRequestCode &&
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startWifiScan()
         } else {
             Toast.makeText(this, "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
             progressBar.visibility = View.GONE
-            noShopsTextView.visibility = View.VISIBLE
+            textViewNoShops.visibility = View.VISIBLE
         }
     }
 

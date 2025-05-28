@@ -7,7 +7,7 @@
     android:background="@color/neutral_background"
     android:padding="16dp">
 
-    <!-- 상단 버튼 라인: 뒤로가기 + 로그아웃 -->
+    <!-- 상단: 로그아웃 버튼 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,30 +16,13 @@
 
         <Button
             android:id="@+id/buttonBack"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="← 뒤로가기"
-            android:textColor="@color/button_primary"
-            android:background="@android:color/transparent"
-            android:textSize="16sp"
-            android:padding="4dp" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="1dp" />
-
-        <Button
-            android:id="@+id/buttonLogout"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="로그아웃"
             android:textColor="@color/button_primary"
             android:background="@android:color/transparent"
             android:textSize="16sp"
-            android:padding="4dp" />
+            android:padding="8dp" />
     </LinearLayout>
 
     <!-- 타이틀 -->
@@ -60,37 +43,51 @@
         android:background="#DDDDDD"
         android:layout_marginBottom="8dp"/>
 
-    <!-- ProgressBar (가게 찾는 중...) -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="visible"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="16dp" />
+    <!-- 중앙: ProgressBar, 안내, RecyclerView -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="8dp">
 
-    <!-- 주변에 감지된 가게 없음 안내 텍스트 -->
-    <TextView
-        android:id="@+id/textViewNoShops"
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+
+        <TextView
+            android:id="@+id/textViewNoShops"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📬 주변에 감지된 가게가 없습니다"
+            android:textSize="16sp"
+            android:textColor="@color/text_secondary"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewShops"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:scrollbars="vertical"
+            android:paddingBottom="8dp"
+            android:visibility="gone"/>
+    </FrameLayout>
+
+    <!-- 하단: 새로고침 버튼 + 카운트다운 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📬 주변에 감지된 가게가 없습니다"
-        android:textSize="16sp"
-        android:textColor="@color/text_secondary"
-        android:gravity="center"
-        android:visibility="gone"
-        android:layout_marginBottom="8dp" />
-
-    <!-- 🔄 새로고침 버튼 + 카운트다운 -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="center"
-        android:layout_marginBottom="12dp"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="12dp">
 
         <TextView
             android:id="@+id/textViewCountdown"
@@ -112,16 +109,5 @@
             android:ellipsize="end"
             android:visibility="visible" />
     </LinearLayout>
-
-    <!-- 가게 리스트 RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewShops"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:scrollbars="vertical"
-        android:paddingBottom="8dp"
-        android:visibility="gone"/>
 
 </LinearLayout>

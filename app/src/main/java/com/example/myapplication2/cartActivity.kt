@@ -3,10 +3,7 @@ package com.example.myapplication2
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -41,8 +38,18 @@ class CartActivity : AppCompatActivity() {
         displayCartItems()
 
         buttonOrder.setOnClickListener {
+            if (CartManager.cartItems.isEmpty()) {
+                Toast.makeText(this, "장바구니가 비어있습니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            buttonOrder.isEnabled = false
             sendOrderToFirebase()
         }
+    }
+
+    // 천 단위 콤마(,)가 들어간 가격 포맷 함수
+    private fun formatPrice(price: Int): String {
+        return String.format("%,d원", price)
     }
 
     private fun displayCartItems() {
@@ -59,14 +66,42 @@ class CartActivity : AppCompatActivity() {
         textEmptyCart.visibility = View.GONE
         buttonOrder.visibility = View.VISIBLE
 
-        for (item in cartItems) {
+        for ((index, item) in cartItems.withIndex()) {
             val itemView = layoutInflater.inflate(R.layout.cart_item, layoutCartItems, false)
-            itemView.findViewById<TextView>(R.id.textItemName).text = "${item.name} x ${item.quantity}"
-            itemView.findViewById<TextView>(R.id.textItemPrice).text = "${item.price * item.quantity}원"
+            val textItemName = itemView.findViewById<TextView>(R.id.textItemName)
+            val textItemPrice = itemView.findViewById<TextView>(R.id.textItemPrice)
+            val textQuantity = itemView.findViewById<TextView>(R.id.textQuantity)
+            val buttonIncrease = itemView.findViewById<Button>(R.id.buttonIncrease)
+            val buttonDecrease = itemView.findViewById<Button>(R.id.buttonDecrease)
+            val buttonRemove = itemView.findViewById<Button>(R.id.buttonRemove)
+
+            textItemName.text = item.name
+            textQuantity.text = item.quantity.toString()
+            textItemPrice.text = formatPrice(item.price * item.quantity)
+
+            buttonIncrease.setOnClickListener {
+                item.quantity++
+                displayCartItems()
+            }
+
+            buttonDecrease.setOnClickListener {
+                if (item.quantity > 1) {
+                    item.quantity--
+                    displayCartItems()
+                } else {
+                    Toast.makeText(this, "최소 수량은 1개입니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            buttonRemove.setOnClickListener {
+                CartManager.cartItems.removeAt(index)
+                displayCartItems()
+            }
+
             layoutCartItems.addView(itemView)
         }
 
-        textTotalPrice.text = "총합: ${CartManager.getTotalPrice()}원"
+        textTotalPrice.text = "총합: ${formatPrice(CartManager.getTotalPrice())}"
     }
 
     private fun sendOrderToFirebase() {
@@ -75,8 +110,12 @@ class CartActivity : AppCompatActivity() {
 
         if (userId == null) {
             Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            buttonOrder.isEnabled = true
             return
         }
+
+        val menuSummary = CartManager.cartItems.joinToString(", ") { "${it.name} x ${it.quantity}" }
+        val totalPrice = CartManager.getTotalPrice()
 
         val orderData = hashMapOf(
             "shopName" to shopName,
@@ -87,7 +126,7 @@ class CartActivity : AppCompatActivity() {
                     "quantity" to it.quantity
                 )
             },
-            "totalPrice" to CartManager.getTotalPrice(),
+            "totalPrice" to totalPrice,
             "timestamp" to Timestamp.now()
         )
 
@@ -96,14 +135,18 @@ class CartActivity : AppCompatActivity() {
             .collection("orders")
             .add(orderData)
             .addOnSuccessListener {
+                val intent = Intent(this@CartActivity, OrderCompleteActivity::class.java).apply {
+                    putExtra("shopName", shopName)
+                    putExtra("totalPrice", totalPrice)
+                    putExtra("menuSummary", menuSummary)
+                }
                 CartManager.clear()
-                val intent = Intent(this@CartActivity, OrderCompleteActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
                 finish()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this@CartActivity, "주문 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "주문 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                buttonOrder.isEnabled = true
             }
     }
 }
