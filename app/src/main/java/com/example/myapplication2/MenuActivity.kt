@@ -17,6 +17,15 @@ class MenuActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private lateinit var menuContainer: LinearLayout
     private lateinit var shopName: String
+    private lateinit var categoryContainer: LinearLayout
+    private var selectedCategory: String = "" // 기본 카테고리 빈 값으로 시작
+
+    // 가게별 카테고리 맵
+    private val categoryMap = mapOf(
+        "버거킹" to listOf("버거단품", "세트", "사이드", "음료&디저트"),
+        "김밥천국" to listOf("김밥류", "덮밥류", "분식류", "면류"),
+        "스타벅스" to listOf("에스프레소", "콜드브루", "리프레셔", "케이크")
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +37,6 @@ class MenuActivity : AppCompatActivity() {
             finish()
         }
 
-        // 가게 이름 받기 (null, 빈 문자열 체크)
         shopName = intent.getStringExtra("shopName") ?: ""
         if (shopName.isBlank()) {
             showToast("가게 이름이 올바르지 않습니다.")
@@ -38,7 +46,6 @@ class MenuActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.textViewMenuTitle).text = "$shopName 의 메뉴입니다"
 
-        // 장바구니 보기
         findViewById<Button>(R.id.buttonGoCart).setOnClickListener {
             val intent = Intent(this, CartActivity::class.java)
             intent.putExtra("shopName", shopName)
@@ -46,10 +53,57 @@ class MenuActivity : AppCompatActivity() {
         }
 
         menuContainer = findViewById(R.id.menuContainer)
+        categoryContainer = findViewById(R.id.categoryContainer)
         db = FirebaseFirestore.getInstance()
 
-        // 메뉴 자동 로드
+        setupCategoryButtons()
+
+        // 초기 메뉴 로드 (기본 카테고리)
         checkShopExistsAndLoadMenus()
+    }
+
+    private fun setupCategoryButtons() {
+        categoryContainer.removeAllViews()
+        val categories = categoryMap[shopName] ?: listOf()
+
+        if (categories.isEmpty()) {
+            showToast("이 가게에 카테고리 정보가 없습니다.")
+            return
+        }
+
+        fun updateButtonStyles(selectedBtn: Button) {
+            for (i in 0 until categoryContainer.childCount) {
+                val btn = categoryContainer.getChildAt(i) as Button
+                btn.setBackgroundColor(Color.TRANSPARENT)
+                btn.setTextColor(Color.BLACK)
+            }
+            selectedBtn.setBackgroundColor(Color.parseColor("#FFBB33"))
+            selectedBtn.setTextColor(Color.WHITE)
+        }
+
+        categories.forEachIndexed { index, category ->
+            val btn = Button(this)
+            btn.text = category
+            btn.setBackgroundColor(Color.TRANSPARENT)
+            btn.setTextColor(Color.BLACK)
+            btn.setPadding(20, 10, 20, 10)
+
+            btn.setOnClickListener {
+                if (selectedCategory != category) {
+                    selectedCategory = category
+                    updateButtonStyles(btn)
+                    loadMenusFromFirestore()
+                }
+            }
+            categoryContainer.addView(btn)
+
+            if (index == 0) {
+                selectedCategory = category
+                // 첫 번째 버튼 기본 선택 스타일
+                btn.setBackgroundColor(Color.parseColor("#FFBB33"))
+                btn.setTextColor(Color.WHITE)
+            }
+        }
     }
 
     private fun checkShopExistsAndLoadMenus() {
@@ -73,11 +127,12 @@ class MenuActivity : AppCompatActivity() {
         db.collection("shops")
             .document(shopName)
             .collection("menus")
+            .whereEqualTo("category", selectedCategory)
             .get()
             .addOnSuccessListener { documents ->
                 Log.d("MenuActivity", "✅ 메뉴 ${documents.size()}개 불러옴")
                 if (documents.isEmpty) {
-                    showToast("❗ 메뉴가 없습니다")
+                    showToast("❗ 해당 카테고리에 메뉴가 없습니다")
                     menuContainer.removeAllViews()
                     return@addOnSuccessListener
                 }
@@ -126,14 +181,13 @@ class MenuActivity : AppCompatActivity() {
             imageView.setImageResource(R.drawable.default_image) // 기본 이미지가 있다면 설정
         }
 
-        // 2번: 눌림(Press) 애니메이션 효과 추가
         val menuRoot = view.findViewById<View>(R.id.menuRoot)
         menuRoot.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> v.animate().scaleX(0.97f).scaleY(0.97f).setDuration(80).start()
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.animate().scaleX(1f).scaleY(1f).setDuration(80).start()
             }
-            false // 클릭 이벤트는 계속 전달
+            false
         }
 
         menuRoot.setOnClickListener {
