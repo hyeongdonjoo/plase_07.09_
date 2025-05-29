@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 눌린 상태일 때 배경 (더 진하고 선명하게 변경) -->
+    <item android:state_pressed="true" android:drawable="@color/pressed_color" />
+
+    <!-- 기본 상태 배경 -->
+    <item android:drawable="@android:color/white" />
+
+</selector>

@@ -38,7 +38,7 @@ class CartActivity : AppCompatActivity() {
         displayCartItems()
 
         buttonOrder.setOnClickListener {
-            if (CartManager.cartItems.isEmpty()) {
+            if (CartManager.getCartItems().isEmpty()) {
                 Toast.makeText(this, "장바구니가 비어있습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -47,7 +47,6 @@ class CartActivity : AppCompatActivity() {
         }
     }
 
-    // 천 단위 콤마(,)가 들어간 가격 포맷 함수
     private fun formatPrice(price: Int): String {
         return String.format("%,d원", price)
     }
@@ -55,7 +54,7 @@ class CartActivity : AppCompatActivity() {
     private fun displayCartItems() {
         layoutCartItems.removeAllViews()
 
-        val cartItems = CartManager.cartItems
+        val cartItems = CartManager.getCartItems()
         if (cartItems.isEmpty()) {
             textEmptyCart.visibility = View.VISIBLE
             buttonOrder.visibility = View.GONE
@@ -66,7 +65,7 @@ class CartActivity : AppCompatActivity() {
         textEmptyCart.visibility = View.GONE
         buttonOrder.visibility = View.VISIBLE
 
-        for ((index, item) in cartItems.withIndex()) {
+        for (item in cartItems) {
             val itemView = layoutInflater.inflate(R.layout.cart_item, layoutCartItems, false)
             val textItemName = itemView.findViewById<TextView>(R.id.textItemName)
             val textItemPrice = itemView.findViewById<TextView>(R.id.textItemPrice)
@@ -94,7 +93,7 @@ class CartActivity : AppCompatActivity() {
             }
 
             buttonRemove.setOnClickListener {
-                CartManager.cartItems.removeAt(index)
+                CartManager.removeItem(item)
                 displayCartItems()
             }
 
@@ -114,12 +113,13 @@ class CartActivity : AppCompatActivity() {
             return
         }
 
-        val menuSummary = CartManager.cartItems.joinToString(", ") { "${it.name} x ${it.quantity}" }
+        val cartItems = CartManager.getCartItems()
+        val menuSummary = cartItems.joinToString(", ") { "${it.name} x ${it.quantity}" }
         val totalPrice = CartManager.getTotalPrice()
 
         val orderData = hashMapOf(
             "shopName" to shopName,
-            "items" to CartManager.cartItems.map {
+            "items" to cartItems.map {
                 mapOf(
                     "name" to it.name,
                     "price" to it.price,

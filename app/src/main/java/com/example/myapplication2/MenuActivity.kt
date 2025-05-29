@@ -1,16 +1,15 @@
 package com.example.myapplication2
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
-import android.graphics.Color
 
 class MenuActivity : AppCompatActivity() {
 
@@ -27,12 +26,14 @@ class MenuActivity : AppCompatActivity() {
         "스타벅스" to listOf("에스프레소", "콜드브루", "리프레셔", "케이크")
     )
 
+    // 눌린 메뉴 이름 저장용 Set
+    private val selectedMenuNames = mutableSetOf<String>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
         setContentView(R.layout.activity_menu)
 
-        // 뒤로가기
         findViewById<Button>(R.id.buttonBack).setOnClickListener {
             finish()
         }
@@ -43,6 +44,10 @@ class MenuActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        CartManager.currentShopName = shopName
+        CartManager.clear()
+        selectedMenuNames.clear()
 
         findViewById<TextView>(R.id.textViewMenuTitle).text = "$shopName 의 메뉴입니다"
 
@@ -58,7 +63,6 @@ class MenuActivity : AppCompatActivity() {
 
         setupCategoryButtons()
 
-        // 초기 메뉴 로드 (기본 카테고리)
         checkShopExistsAndLoadMenus()
     }
 
@@ -99,7 +103,6 @@ class MenuActivity : AppCompatActivity() {
 
             if (index == 0) {
                 selectedCategory = category
-                // 첫 번째 버튼 기본 선택 스타일
                 btn.setBackgroundColor(Color.parseColor("#FFBB33"))
                 btn.setTextColor(Color.WHITE)
             }
@@ -156,12 +159,31 @@ class MenuActivity : AppCompatActivity() {
 
     private fun addMenuCard(menu: MenuItem) {
         val view = LayoutInflater.from(this).inflate(R.layout.menu_item, menuContainer, false)
+        val menuRoot = view.findViewById<View>(R.id.menuRoot)
+
+        val isSelected = selectedMenuNames.contains(menu.name)
+        menuRoot.setBackgroundColor(if (isSelected) Color.parseColor("#66000000") else Color.WHITE)
+
+        menuRoot.setOnClickListener {
+            val currentlySelected = selectedMenuNames.contains(menu.name)
+            if (currentlySelected) {
+                selectedMenuNames.remove(menu.name)
+                menuRoot.setBackgroundColor(Color.WHITE)
+                CartManager.removeOneItem(menu.name)
+                showToast("${menu.name} 빼졌습니다")
+            } else {
+                selectedMenuNames.add(menu.name)
+                menuRoot.setBackgroundColor(Color.parseColor("#66000000"))
+                CartManager.addItem(CartItem(menu.name, menu.price, 1))
+                showToast("${menu.name} 담았습니다")
+            }
+        }
+
         view.findViewById<TextView>(R.id.textMenuName).text = menu.name
         view.findViewById<TextView>(R.id.textMenuDesc).text = menu.desc
         view.findViewById<TextView>(R.id.textMenuPrice).text = "${menu.price}원"
 
         val imageView = view.findViewById<ImageView>(R.id.imageMenu)
-
         if (menu.image.isNotBlank()) {
             db.collection("photo")
                 .document(menu.image)
@@ -178,23 +200,7 @@ class MenuActivity : AppCompatActivity() {
                     Log.e("MenuActivity", "🔥 이미지 로딩 실패", it)
                 }
         } else {
-            imageView.setImageResource(R.drawable.default_image) // 기본 이미지가 있다면 설정
-        }
-
-        val menuRoot = view.findViewById<View>(R.id.menuRoot)
-        menuRoot.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> v.animate().scaleX(0.97f).scaleY(0.97f).setDuration(80).start()
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.animate().scaleX(1f).scaleY(1f).setDuration(80).start()
-            }
-            false
-        }
-
-        menuRoot.setOnClickListener {
-            it.isEnabled = false
-            CartManager.addItem(CartItem(menu.name, menu.price, 1))
-            showToast("${menu.name} 담았습니다")
-            it.postDelayed({ it.isEnabled = true }, 500)
+            imageView.setImageResource(R.drawable.default_image)
         }
 
         menuContainer.addView(view)

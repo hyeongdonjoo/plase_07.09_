@@ -22,4 +22,8 @@
     <color name="button_secondary">#C9A36B</color>        <!-- 금빛 포인트 -->
     <color name="input_border">#DDDDDD</color>            <!-- 입력창 테두리 -->
     <color name="button_border">#BBBBBB</color>           <!-- 라이트 버튼 테두리 -->
+
+
+    <!-- 눌림 배경용 진한 반투명 검정 -->
+    <color name="pressed_color">#99000000</color>
 </resources>
