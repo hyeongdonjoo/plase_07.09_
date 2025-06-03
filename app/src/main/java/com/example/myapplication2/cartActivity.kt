@@ -42,8 +42,19 @@ class CartActivity : AppCompatActivity() {
                 Toast.makeText(this, "장바구니가 비어있습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            buttonOrder.isEnabled = false
-            sendOrderToFirebase()
+
+            // 주문 정보 준비
+            val cartItems = CartManager.getCartItems()
+            val menuSummary = cartItems.joinToString(", ") { "${it.name} x ${it.quantity}" }
+            val totalPrice = CartManager.getTotalPrice()
+
+            // 결제 안내 화면으로 이동 (주문 정보 전달)
+            val intent = Intent(this, PaymentGuideActivity::class.java).apply {
+                putExtra("shopName", shopName)
+                putExtra("totalPrice", totalPrice)
+                putExtra("menuSummary", menuSummary)
+            }
+            startActivity(intent)
         }
     }
 
@@ -103,7 +114,9 @@ class CartActivity : AppCompatActivity() {
         textTotalPrice.text = "총합: ${formatPrice(CartManager.getTotalPrice())}"
     }
 
-    private fun sendOrderToFirebase() {
+    // sendOrderToFirebase는 더 이상 buttonOrder에서 직접 호출하지 않으므로,
+    // PaymentGuideActivity에서 결제 완료 시 호출하도록 별도로 사용할 수 있습니다.
+    fun sendOrderToFirebase(shopName: String, menuSummary: String, totalPrice: Int) {
         val db = FirebaseFirestore.getInstance()
         val userId = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -114,8 +127,6 @@ class CartActivity : AppCompatActivity() {
         }
 
         val cartItems = CartManager.getCartItems()
-        val menuSummary = cartItems.joinToString(", ") { "${it.name} x ${it.quantity}" }
-        val totalPrice = CartManager.getTotalPrice()
 
         val orderData = hashMapOf(
             "shopName" to shopName,
