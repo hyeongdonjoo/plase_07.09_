@@ -32,6 +32,9 @@ class PaymentGuideActivity : AppCompatActivity() {
             return
         }
 
+        // 주문번호 생성
+        val orderNumber = Timestamp.now().toDate().time.toString()
+
         // menuSummary를 아이템 리스트로 변환 (예시)
         val items = menuSummary.split(",").map {
             val parts = it.trim().split(" x ")
@@ -41,13 +44,16 @@ class PaymentGuideActivity : AppCompatActivity() {
             )
         }
 
+        // 주문 데이터 생성 (orderNumber 포함)
         val orderData = hashMapOf(
+            "orderNumber" to orderNumber,
             "shopName" to shopName,
             "items" to items,
             "totalPrice" to totalPrice,
             "timestamp" to Timestamp.now()
         )
 
+        // Firestore에 저장
         db.collection("users")
             .document(userId)
             .collection("orders")
@@ -58,6 +64,7 @@ class PaymentGuideActivity : AppCompatActivity() {
                     putExtra("shopName", shopName)
                     putExtra("totalPrice", totalPrice)
                     putExtra("menuSummary", menuSummary)
+                    putExtra("orderNumber", orderNumber) // 주문번호도 넘김
                 }
                 startActivity(intent)
                 finish()

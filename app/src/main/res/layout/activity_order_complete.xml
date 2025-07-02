@@ -20,7 +20,18 @@
         android:gravity="center"
         android:background="@drawable/rounded_purple_bg"
         android:padding="20dp"
-        android:layout_marginBottom="100dp" />
+        android:layout_marginBottom="24dp" />
+
+    <!-- 주문번호 표시 -->
+    <TextView
+        android:id="@+id/textOrderNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="16sp"
+        android:textColor="#4B2997"
+        android:gravity="center"
+        android:layout_marginBottom="40dp" />
 
     <!-- 주문한 메뉴 영역 - 배경색 적용 -->
     <LinearLayout
@@ -35,7 +46,7 @@
             android:id="@+id/textViewMenuTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="M    E    N    U"
+            android:text="주    문    내    역"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#4B2997"
@@ -63,8 +74,6 @@
             android:background="@drawable/rounded_total_bg"
             android:padding="14dp"
             android:layout_marginBottom="0dp" />
-
-
     </LinearLayout>
 
     <!-- 홈으로 가기 버튼 -->

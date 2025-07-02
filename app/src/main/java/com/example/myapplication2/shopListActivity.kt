@@ -173,7 +173,7 @@ class ShopListActivity : AppCompatActivity() {
             val rssi = result.level
             Log.d("WiFiScan", "📡 SSID: $ssid, RSSI: $rssi dBm")
 
-            if (rssi > -60 && ssid.isNotBlank()) {
+            if (rssi > -80 && ssid.isNotBlank()) {
                 detectedSsids.add(ssid)
             }
         }
