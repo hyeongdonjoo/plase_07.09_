@@ -18,7 +18,7 @@
         android:textStyle="bold"
         android:textColor="#FFFFFF"
         android:gravity="center"
-        android:background="@drawable/rounded_purple_bg"
+        android:background="@drawable/rounded_menu_bg"
         android:padding="20dp"
         android:layout_marginBottom="24dp" />
 
@@ -26,12 +26,13 @@
     <TextView
         android:id="@+id/textOrderNumber"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="16sp"
-        android:textColor="#4B2997"
+        android:layout_height="40dp"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/rounded_menu_bg"
         android:gravity="center"
-        android:layout_marginBottom="40dp" />
+        android:text=""
+        android:textColor="#4B2997"
+        android:textSize="16sp" />
 
     <!-- 주문한 메뉴 영역 - 배경색 적용 -->
     <LinearLayout
