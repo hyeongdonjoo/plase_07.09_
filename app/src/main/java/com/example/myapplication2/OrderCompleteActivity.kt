@@ -15,18 +15,19 @@ class OrderCompleteActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_order_complete)
 
+        // 인텐트에서 데이터 받기
         val shopName = intent.getStringExtra("shopName") ?: "알 수 없는 가게"
         val totalPrice = intent.getIntExtra("totalPrice", 0)
         val menuSummary = intent.getStringExtra("menuSummary") ?: "메뉴 정보 없음"
         val orderNumber = intent.getStringExtra("orderNumber") ?: "주문번호 없음"
 
-        // 주문이 완료되었습니다! (가게명)
+        // 주문 완료 메시지
         findViewById<TextView>(R.id.textShopNameComplete).text = "$shopName 주문이 완료되었습니다!"
 
         // 주문번호 표시
         findViewById<TextView>(R.id.textOrderNumber).text = "주문번호: $orderNumber"
 
-        // 총액
+        // 총액 표시
         findViewById<TextView>(R.id.textViewTotalPrice).text = "총액: ${String.format("%,d원", totalPrice)}"
 
         // 메뉴 요약을 세로로 한 줄씩 출력

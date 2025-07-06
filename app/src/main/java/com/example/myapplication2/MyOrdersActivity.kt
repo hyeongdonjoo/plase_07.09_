@@ -65,6 +65,11 @@ class MyOrdersActivity : AppCompatActivity() {
                     val shopText = orderView.findViewById<TextView>(R.id.textShopName)
                     val priceText = orderView.findViewById<TextView>(R.id.textTotalPrice)
                     val itemsText = orderView.findViewById<TextView>(R.id.textOrderItems)
+                    val orderNumberText = orderView.findViewById<TextView>(R.id.textOrderNumber) // 주문번호 TextView
+
+                    // 주문번호 읽어서 표시
+                    val orderNumber = document.get("orderNumber")?.toString() ?: "주문번호 없음"
+                    orderNumberText.text = "주문번호: $orderNumber"
 
                     shopText.text = "가게: ${document.getString("shopName")}"
                     priceText.text = "총액: ${document.getLong("totalPrice")}원"

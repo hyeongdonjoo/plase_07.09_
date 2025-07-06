@@ -32,10 +32,6 @@ class PaymentGuideActivity : AppCompatActivity() {
             return
         }
 
-        // 주문번호 생성
-        val orderNumber = Timestamp.now().toDate().time.toString()
-
-        // menuSummary를 아이템 리스트로 변환 (예시)
         val items = menuSummary.split(",").map {
             val parts = it.trim().split(" x ")
             mapOf(
@@ -44,33 +40,44 @@ class PaymentGuideActivity : AppCompatActivity() {
             )
         }
 
-        // 주문 데이터 생성 (orderNumber 포함)
-        val orderData = hashMapOf(
-            "orderNumber" to orderNumber,
-            "shopName" to shopName,
-            "items" to items,
-            "totalPrice" to totalPrice,
-            "timestamp" to Timestamp.now()
-        )
+        // 매장별 카운터 문서 지정 (orders_counter_매장명)
+        val counterRef = db.collection("system").document("orders_counter_$shopName")
 
-        // Firestore에 저장
-        db.collection("users")
-            .document(userId)
-            .collection("orders")
-            .add(orderData)
-            .addOnSuccessListener {
-                // 저장 성공 → 주문완료 화면 이동
-                val intent = Intent(this, OrderCompleteActivity::class.java).apply {
-                    putExtra("shopName", shopName)
-                    putExtra("totalPrice", totalPrice)
-                    putExtra("menuSummary", menuSummary)
-                    putExtra("orderNumber", orderNumber) // 주문번호도 넘김
-                }
-                startActivity(intent)
-                finish()
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(counterRef)
+            val currentOrderNumber = snapshot.getLong("currentOrderNumber") ?: 0L
+            val nextOrderNumber = currentOrderNumber + 1
+
+            // 카운터 값 업데이트
+            transaction.update(counterRef, "currentOrderNumber", nextOrderNumber)
+
+            // 주문 데이터 생성
+            val orderData = hashMapOf(
+                "orderNumber" to nextOrderNumber,
+                "shopName" to shopName,
+                "items" to items,
+                "totalPrice" to totalPrice,
+                "timestamp" to Timestamp.now()
+            )
+
+            // 주문 저장 (orders 컬렉션에)
+            val ordersRef = db.collection("users").document(userId).collection("orders")
+            transaction.set(ordersRef.document(), orderData)
+
+            // 트랜잭션 결과 반환
+            nextOrderNumber
+        }.addOnSuccessListener { orderNumber ->
+            // 주문완료 화면으로 이동 (orderNumber 전달)
+            val intent = Intent(this, OrderCompleteActivity::class.java).apply {
+                putExtra("shopName", shopName)
+                putExtra("totalPrice", totalPrice)
+                putExtra("menuSummary", menuSummary)
+                putExtra("orderNumber", orderNumber.toString())
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "주문 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+            startActivity(intent)
+            finish()
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "주문 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 }

@@ -1,70 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/neutral_background"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/rootLayout"
-        android:orientation="vertical"
+    <!-- 스크롤 가능한 메뉴 영역 -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:background="@color/neutral_background"
+        android:padding="16dp"
+        android:clipToPadding="false">
 
-        <!-- 🔙 뒤로가기 버튼 -->
-        <Button
-            android:id="@+id/buttonBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="← 뒤로가기"
-            android:textColor="@color/button_primary"
-            android:background="@android:color/transparent"
-            android:textSize="20sp"
-            android:padding="10dp"
-            android:layout_marginBottom="8dp" />
-
-        <!-- 타이틀 -->
-        <TextView
-            android:id="@+id/textViewMenuTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="가게 메뉴"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="8dp" />
-
-        <!-- 카테고리 버튼 영역 -->
         <LinearLayout
-            android:id="@+id/categoryContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="12dp">
-            <!--
-              기존 버튼 삭제 후, 여기에 MenuActivity.kt에서 동적 생성한 버튼들이 들어감
-            -->
-        </LinearLayout>
-
-        <!-- 메뉴 리스트가 들어갈 컨테이너 -->
-        <LinearLayout
-            android:id="@+id/menuContainer"
+            android:id="@+id/rootLayout"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <!-- 🛒 장바구니 보기 버튼 -->
-        <Button
-            android:id="@+id/buttonGoCart"
-            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="장바구니 보기"
-            android:layout_marginTop="24dp"
-            android:textSize="20sp"
-            android:textColor="@android:color/white"
-            android:background="@color/button_primary"
-            android:padding="14dp" />
-    </LinearLayout>
-</ScrollView>
+            android:paddingBottom="100dp">
+
+            <!-- 🔙 뒤로가기 버튼 -->
+            <Button
+                android:id="@+id/buttonBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="← 뒤로가기"
+                android:textColor="@color/button_primary"
+                android:background="@android:color/transparent"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- 타이틀 -->
+            <TextView
+                android:id="@+id/textViewMenuTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="가게 메뉴"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="8dp" />
+
+            <!-- 카테고리 버튼 영역 -->
+            <LinearLayout
+                android:id="@+id/categoryContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="12dp">
+                <!-- 동적 생성 카테고리 버튼들 -->
+            </LinearLayout>
+
+            <!-- 메뉴 리스트가 들어갈 컨테이너 -->
+            <LinearLayout
+                android:id="@+id/menuContainer"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- (기존 장바구니 버튼은 삭제, 아래에 고정됨) -->
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 🛒 하단 고정 장바구니 버튼 -->
+    <Button
+        android:id="@+id/buttonGoCart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="장바구니 보기"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:background="@color/button_primary"
+        android:padding="14dp"
+        android:layout_gravity="bottom"
+        android:layout_margin="16dp"/>
+</FrameLayout>
