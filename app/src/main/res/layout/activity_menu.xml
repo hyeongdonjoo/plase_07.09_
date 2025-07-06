@@ -31,16 +31,34 @@
                 android:padding="10dp"
                 android:layout_marginBottom="8dp" />
 
-            <!-- 타이틀 -->
-            <TextView
-                android:id="@+id/textViewMenuTitle"
+            <!-- 타이틀 + 언어변경 버튼을 가로로 배치 -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="가게 메뉴"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="8dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/textViewMenuTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="가게 메뉴"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <Button
+                    android:id="@+id/buttonLanguage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🌐 LANGUAGE"
+                    android:textSize="16sp"
+                    android:textColor="@color/button_primary"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp"/>
+            </LinearLayout>
 
             <!-- 카테고리 버튼 영역 -->
             <LinearLayout
