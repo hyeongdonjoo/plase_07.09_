@@ -43,18 +43,17 @@ class CartActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // 주문 정보 준비
             val cartItems = CartManager.getCartItems()
-            val menuSummary = cartItems.joinToString(", ") { "${it.name} x ${it.quantity}" }
             val totalPrice = CartManager.getTotalPrice()
+            val currentLang = LocaleHelper.getSavedLanguage(this)
 
-            // 결제 안내 화면으로 이동 (주문 정보 전달)
-            val intent = Intent(this, PaymentGuideActivity::class.java).apply {
-                putExtra("shopName", shopName)
-                putExtra("totalPrice", totalPrice)
-                putExtra("menuSummary", menuSummary)
+            // ✅ 외국어 메뉴 요약 생성
+            val menuSummary = cartItems.joinToString(", ") {
+                val translated = it.translatedName[currentLang] ?: it.name
+                "$translated x${it.quantity}"
             }
-            startActivity(intent)
+
+            sendOrderToFirebase(shopName, totalPrice, menuSummary)
         }
     }
 
@@ -66,6 +65,8 @@ class CartActivity : AppCompatActivity() {
         layoutCartItems.removeAllViews()
 
         val cartItems = CartManager.getCartItems()
+        val currentLang = LocaleHelper.getSavedLanguage(this)
+
         if (cartItems.isEmpty()) {
             textEmptyCart.visibility = View.VISIBLE
             buttonOrder.visibility = View.GONE
@@ -85,7 +86,7 @@ class CartActivity : AppCompatActivity() {
             val buttonDecrease = itemView.findViewById<Button>(R.id.buttonDecrease)
             val buttonRemove = itemView.findViewById<Button>(R.id.buttonRemove)
 
-            textItemName.text = item.name
+            textItemName.text = item.translatedName[currentLang] ?: item.name
             textQuantity.text = item.quantity.toString()
             textItemPrice.text = formatPrice(item.price * item.quantity)
 
@@ -114,50 +115,53 @@ class CartActivity : AppCompatActivity() {
         textTotalPrice.text = "총합: ${formatPrice(CartManager.getTotalPrice())}"
     }
 
-    // sendOrderToFirebase는 더 이상 buttonOrder에서 직접 호출하지 않으므로,
-    // PaymentGuideActivity에서 결제 완료 시 호출하도록 별도로 사용할 수 있습니다.
-    fun sendOrderToFirebase(shopName: String, menuSummary: String, totalPrice: Int) {
+    private fun sendOrderToFirebase(shopName: String, totalPrice: Int, menuSummary: String) {
         val db = FirebaseFirestore.getInstance()
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-
-        if (userId == null) {
-            Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-            buttonOrder.isEnabled = true
-            return
-        }
-
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "anonymous"
         val cartItems = CartManager.getCartItems()
+        val currentLang = LocaleHelper.getSavedLanguage(this)
 
-        val orderData = hashMapOf(
-            "shopName" to shopName,
-            "items" to cartItems.map {
-                mapOf(
-                    "name" to it.name,
-                    "price" to it.price,
-                    "quantity" to it.quantity
-                )
-            },
-            "totalPrice" to totalPrice,
-            "timestamp" to Timestamp.now()
-        )
+        val shopRef = db.collection("orders").document(shopName)
 
-        db.collection("users")
-            .document(userId)
-            .collection("orders")
-            .add(orderData)
-            .addOnSuccessListener {
-                val intent = Intent(this@CartActivity, OrderCompleteActivity::class.java).apply {
-                    putExtra("shopName", shopName)
-                    putExtra("totalPrice", totalPrice)
-                    putExtra("menuSummary", menuSummary)
-                }
-                CartManager.clear()
-                startActivity(intent)
-                finish()
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(shopRef)
+            val currentOrderCount = snapshot.getLong("orderCount") ?: 0
+            val newOrderNumber = currentOrderCount + 1
+
+            val orderData = hashMapOf(
+                "userId" to userId,
+                "shopName" to shopName,
+                "orderNumber" to newOrderNumber,
+                "items" to cartItems.map {
+                    mapOf(
+                        "name" to it.name, // ✅ 포스기용 한국어
+                        "translatedName" to it.translatedName,
+                        "price" to it.price,
+                        "quantity" to it.quantity
+                    )
+                },
+                "totalPrice" to totalPrice,
+                "timestamp" to Timestamp.now()
+            )
+
+            transaction.set(
+                shopRef.collection("list").document("주문$newOrderNumber"),
+                orderData
+            )
+            transaction.update(shopRef, "orderCount", newOrderNumber)
+
+        }.addOnSuccessListener {
+            val intent = Intent(this@CartActivity, OrderCompleteActivity::class.java).apply {
+                putExtra("shopName", shopName)
+                putExtra("totalPrice", totalPrice)
+                putExtra("menuSummary", menuSummary)  // ✅ 외국어 메뉴 요약 전달
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "주문 실패: ${e.message}", Toast.LENGTH_SHORT).show()
-                buttonOrder.isEnabled = true
-            }
+            CartManager.clear()
+            startActivity(intent)
+            finish()
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "주문 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+            buttonOrder.isEnabled = true
+        }
     }
 }

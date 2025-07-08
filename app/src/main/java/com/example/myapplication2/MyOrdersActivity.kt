@@ -22,7 +22,6 @@ class MyOrdersActivity : AppCompatActivity() {
 
         layoutOrders = findViewById(R.id.layoutOrders)
 
-        // 홈으로 가기 버튼 동작
         findViewById<Button>(R.id.buttonGoHome).setOnClickListener {
             val intent = Intent(this, ShopListActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
@@ -42,6 +41,7 @@ class MyOrdersActivity : AppCompatActivity() {
         }
 
         val db = FirebaseFirestore.getInstance()
+        val lang = LocaleHelper.getSavedLanguage(this)
 
         db.collection("users")
             .document(userId)
@@ -65,9 +65,8 @@ class MyOrdersActivity : AppCompatActivity() {
                     val shopText = orderView.findViewById<TextView>(R.id.textShopName)
                     val priceText = orderView.findViewById<TextView>(R.id.textTotalPrice)
                     val itemsText = orderView.findViewById<TextView>(R.id.textOrderItems)
-                    val orderNumberText = orderView.findViewById<TextView>(R.id.textOrderNumber) // 주문번호 TextView
+                    val orderNumberText = orderView.findViewById<TextView>(R.id.textOrderNumber)
 
-                    // 주문번호 읽어서 표시
                     val orderNumber = document.get("orderNumber")?.toString() ?: "주문번호 없음"
                     orderNumberText.text = "주문번호: $orderNumber"
 
@@ -76,8 +75,15 @@ class MyOrdersActivity : AppCompatActivity() {
 
                     val items = document["items"] as? List<Map<String, Any>>
                     val itemDescriptions = items?.joinToString(", ") { item ->
-                        val name = item["name"] as? String ?: ""
                         val qty = (item["quantity"] as? Long ?: 1).toInt()
+
+                        // 외국어 번역된 이름 우선 사용, 없으면 name
+                        val translatedName = item["translatedName"] as? Map<*, *>
+                        val name = translatedName?.get(lang)?.toString()
+                            ?: translatedName?.get("ko")?.toString()
+                            ?: item["name"]?.toString()
+                            ?: "알 수 없음"
+
                         "$name x$qty"
                     } ?: "메뉴 정보 없음"
 

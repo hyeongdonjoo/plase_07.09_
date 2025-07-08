@@ -21,7 +21,6 @@ class MenuActivity : AppCompatActivity() {
     private var selectedCategory: String = ""
     private val selectedMenuNames = mutableSetOf<String>()
 
-    // 언어별·매장별 카테고리맵
     private val categoryMapLocalized = mapOf(
         "ko" to mapOf(
             "버거킹" to listOf("버거단품", "세트", "사이드", "음료&디저트"),
@@ -187,7 +186,7 @@ class MenuActivity : AppCompatActivity() {
                     )
 
                     if (menu.category == selectedCategory) {
-                        addMenuCard(menu, nameDisplay)
+                        addMenuCard(menu, nameDisplay, nameMap)
                     }
                 }
             }
@@ -204,7 +203,7 @@ class MenuActivity : AppCompatActivity() {
             ?: ""
     }
 
-    private fun addMenuCard(menu: MenuItem, displayName: String) {
+    private fun addMenuCard(menu: MenuItem, displayName: String, nameMap: Map<*, *>) {
         val view = LayoutInflater.from(this).inflate(R.layout.menu_item, menuContainer, false)
         val menuRoot = view.findViewById<View>(R.id.menuRoot)
 
@@ -221,11 +220,21 @@ class MenuActivity : AppCompatActivity() {
             } else {
                 selectedMenuNames.add(menu.name)
                 menuRoot.setBackgroundColor(Color.parseColor("#66000000"))
+
+                @Suppress("UNCHECKED_CAST")
+                val translated = (nameMap as? Map<String, String>) ?: emptyMap()
+
                 CartManager.addItem(
                     CartItem(
-                        name = displayName,
+                        name = translated["ko"].orEmpty(),  // 🔥 한국어 이름만 name에 저장!
                         price = menu.price,
-                        quantity = 1
+                        quantity = 1,
+                        translatedName = mapOf(
+                            "ko" to translated["ko"].orEmpty(),
+                            "en" to translated["en"].orEmpty(),
+                            "ja" to translated["ja"].orEmpty(),
+                            "zh" to translated["zh"].orEmpty()
+                        )
                     )
                 )
                 showToast("$displayName 담았습니다")
