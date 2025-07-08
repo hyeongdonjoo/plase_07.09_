@@ -47,7 +47,7 @@ class CartActivity : AppCompatActivity() {
             val totalPrice = CartManager.getTotalPrice()
             val currentLang = LocaleHelper.getSavedLanguage(this)
 
-            // ✅ 외국어 메뉴 요약 생성
+            // 외국어 메뉴 요약 생성
             val menuSummary = cartItems.joinToString(", ") {
                 val translated = it.translatedName[currentLang] ?: it.name
                 "$translated x${it.quantity}"
@@ -121,12 +121,16 @@ class CartActivity : AppCompatActivity() {
         val cartItems = CartManager.getCartItems()
         val currentLang = LocaleHelper.getSavedLanguage(this)
 
+        // 메뉴 정보와 수량을 배열로 전달
+        val translatedNames = cartItems.map { it.translatedName }
+        val quantities = cartItems.map { it.quantity }
+
         val shopRef = db.collection("orders").document(shopName)
 
         db.runTransaction { transaction ->
             val snapshot = transaction.get(shopRef)
             val currentOrderCount = snapshot.getLong("orderCount") ?: 0
-            val newOrderNumber = currentOrderCount + 1
+            val newOrderNumber = currentOrderCount + 1  // 주문번호 계산
 
             val orderData = hashMapOf(
                 "userId" to userId,
@@ -134,7 +138,7 @@ class CartActivity : AppCompatActivity() {
                 "orderNumber" to newOrderNumber,
                 "items" to cartItems.map {
                     mapOf(
-                        "name" to it.name, // ✅ 포스기용 한국어
+                        "name" to it.name, // 포스기용 한국어
                         "translatedName" to it.translatedName,
                         "price" to it.price,
                         "quantity" to it.quantity
@@ -150,15 +154,20 @@ class CartActivity : AppCompatActivity() {
             )
             transaction.update(shopRef, "orderCount", newOrderNumber)
 
-        }.addOnSuccessListener {
+            // 트랜잭션 완료 후 Intent 전달
             val intent = Intent(this@CartActivity, OrderCompleteActivity::class.java).apply {
                 putExtra("shopName", shopName)
                 putExtra("totalPrice", totalPrice)
-                putExtra("menuSummary", menuSummary)  // ✅ 외국어 메뉴 요약 전달
+                putExtra("menuSummary", menuSummary)
+                putExtra("orderNumber", "주문번호: $newOrderNumber")  // 주문번호 추가
+                putExtra("translatedNames", ArrayList(translatedNames))  // 번역된 이름 리스트 전달
+                putExtra("quantities", ArrayList(quantities))  // 수량 리스트 전달
             }
-            CartManager.clear()
+
+            CartManager.clear()  // 트랜잭션 완료 후 장바구니 비우기
             startActivity(intent)
             finish()
+
         }.addOnFailureListener { e ->
             Toast.makeText(this, "주문 실패: ${e.message}", Toast.LENGTH_SHORT).show()
             buttonOrder.isEnabled = true

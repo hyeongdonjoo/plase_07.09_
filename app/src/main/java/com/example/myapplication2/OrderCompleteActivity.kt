@@ -22,23 +22,29 @@ class OrderCompleteActivity : AppCompatActivity() {
 
         // 번역된 메뉴명 리스트와 수량 리스트
         val translatedNames =
-            intent.getSerializableExtra("translatedNames") as? ArrayList<HashMap<String, String>>
-        val quantities = intent.getIntegerArrayListExtra("quantities")
+            intent.getSerializableExtra("translatedNames") as? ArrayList<HashMap<String, String>> // 안전하게 캐스팅
+        val quantities = intent.getIntegerArrayListExtra("quantities") ?: arrayListOf()
 
         // 현재 언어 설정
         val lang = LocaleHelper.getSavedLanguage(this)
 
         // UI에 텍스트 반영
-        findViewById<TextView>(R.id.textShopNameComplete).text = "$shopName 주문이 완료되었습니다!"
-        findViewById<TextView>(R.id.textOrderNumber).text = "주문번호: $orderNumber"
-        findViewById<TextView>(R.id.textViewTotalPrice).text = "총액: ${String.format("%,d원", totalPrice)}"
+        val shopNameTextView = findViewById<TextView>(R.id.textShopNameComplete)
+        val orderNumberTextView = findViewById<TextView>(R.id.textOrderNumber)
+        val totalPriceTextView = findViewById<TextView>(R.id.textViewTotalPrice)
+        val menuSummaryTextView = findViewById<TextView>(R.id.textViewMenuList)
+
+        // 주문 정보 UI에 반영
+        shopNameTextView.text = "$shopName 주문이 완료되었습니다!"
+        orderNumberTextView.text = "주문번호: $orderNumber" // 주문번호 추가
+        totalPriceTextView.text = "총액: ${String.format("%,d원", totalPrice)}"
 
         // 메뉴 요약 표시
         val summaryLines = mutableListOf<String>()
-        if (translatedNames != null && quantities != null) {
+        if (translatedNames != null && quantities.isNotEmpty()) {
             for (i in translatedNames.indices) {
                 val nameMap = translatedNames[i]
-                val quantity = quantities[i]
+                val quantity = quantities.getOrNull(i) ?: 0 // 안전하게 값 가져오기
                 val displayName = nameMap[lang] ?: nameMap["ko"] ?: "알 수 없음"
                 summaryLines.add("$displayName x $quantity")
             }
@@ -46,7 +52,7 @@ class OrderCompleteActivity : AppCompatActivity() {
             summaryLines.add("메뉴 정보 없음")
         }
 
-        findViewById<TextView>(R.id.textViewMenuList).text = summaryLines.joinToString("\n")
+        menuSummaryTextView.text = summaryLines.joinToString("\n")
 
         // 홈으로 이동 버튼
         findViewById<Button>(R.id.buttonGoHome).setOnClickListener {

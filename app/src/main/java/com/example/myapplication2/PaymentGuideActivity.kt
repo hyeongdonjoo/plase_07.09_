@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class PaymentGuideActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_payment_guide)
@@ -18,14 +19,26 @@ class PaymentGuideActivity : AppCompatActivity() {
         val totalPrice = intent.getIntExtra("totalPrice", 0)
         val menuSummary = intent.getStringExtra("menuSummary") ?: ""
 
+        // 결제 버튼 클릭 시, 결제 앱 연동을 시작합니다.
         findViewById<Button>(R.id.buttonStartPayment).setOnClickListener {
-            sendOrderToFirebase(shopName, totalPrice, menuSummary)
+            // 결제 연동 화면을 띄운 후, 결제가 완료되면 주문 완료 페이지로 이동
+            startPaymentProcessing(shopName, totalPrice, menuSummary)
         }
     }
 
+    // 결제 진행 처리
+    private fun startPaymentProcessing(shopName: String, totalPrice: Int, menuSummary: String) {
+        // 결제 연동을 위한 임시 디버깅 메시지
+        Toast.makeText(this, "결제 연동 처리 중...", Toast.LENGTH_SHORT).show()
+
+        // 결제 앱 연동 없이 결제 완료 페이지로 바로 이동
+        sendOrderToFirebase(shopName, totalPrice, menuSummary)
+    }
+
+    // Firebase에 주문을 저장하고 주문 완료 페이지로 이동
     private fun sendOrderToFirebase(shopName: String, totalPrice: Int, menuSummary: String) {
-        val db = FirebaseFirestore.getInstance()
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        val db = FirebaseFirestore.getInstance()  // Firebase Firestore 인스턴스 가져오기
+        val userId = FirebaseAuth.getInstance().currentUser?.uid  // FirebaseAuth 인스턴스 가져오기
 
         if (userId == null) {
             Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
@@ -60,7 +73,7 @@ class PaymentGuideActivity : AppCompatActivity() {
                 "timestamp" to Timestamp.now()
             )
 
-            // 주문 저장 (orders 컬렉션에)
+            // 주문 저장 (users -> orders 컬렉션에)
             val ordersRef = db.collection("users").document(userId).collection("orders")
             transaction.set(ordersRef.document(), orderData)
 
@@ -72,10 +85,10 @@ class PaymentGuideActivity : AppCompatActivity() {
                 putExtra("shopName", shopName)
                 putExtra("totalPrice", totalPrice)
                 putExtra("menuSummary", menuSummary)
-                putExtra("orderNumber", orderNumber.toString())
+                putExtra("orderNumber", orderNumber.toString())  // 주문번호 전달
             }
-            startActivity(intent)
-            finish()
+            startActivity(intent)  // 주문 완료 화면으로 이동
+            finish()  // 현재 Activity 종료
         }.addOnFailureListener { e ->
             Toast.makeText(this, "주문 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
         }
